@@ -1,0 +1,3 @@
+<section>
+    Admin page
+</section>
