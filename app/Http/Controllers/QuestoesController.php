@@ -30,10 +30,10 @@ class QuestoesController extends Controller
             'alternativas.*.correta.required' => 'Indicação de correção não fornecida'
         ]);
         // verificar se existe ao menos uma alternativa correta
-        $validator->after(function($validator) use ($request){
+        $validator->after(function ($validator) use ($request) {
             $temAlternativaCorreta = collect($request->alternativas)->contains('correta', true);
 
-            if(!$temAlternativaCorreta){
+            if (!$temAlternativaCorreta) {
                 $validator->errors()->add(
                     'alternativas',
                     'Pelo menos uma alternativa deve estar marcada como correta'
@@ -41,14 +41,14 @@ class QuestoesController extends Controller
             }
         });
 
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json([
                 'message' => 'Dados inválidos',
                 'errors' => $validator->errors()
             ], 422);
         }
 
-        try{
+        try {
             $questao = Questao::create([
                 'titulo' => $request->questoes['titulo'],
                 'dificuldade' => $request->questoes['dificuldade'],
@@ -71,7 +71,7 @@ class QuestoesController extends Controller
                 'message' => 'Questão e alternativas criadas com sucesso',
                 // 'questao_id' => $questao->id
             ], 201);
-        } catch (\Exception $e){
+        } catch (\Exception $e) {
             return false;
         }
 
@@ -105,5 +105,15 @@ class QuestoesController extends Controller
         } else {
             return response()->json(['message' => 'Dados insuficientes'], 400);
         }
+    }
+    public function getQuestoes()
+    {
+        $questoes = Questao::all();
+        return response()->json($questoes, 200);
+    }
+    public function getQuestao(Questao $questao)
+    {
+        $alternativas = $questao->alternativas;
+        return response()->json($questao, 200);
     }
 }

@@ -28,24 +28,32 @@ class UsuarioAuthController extends Controller
 
         return response()->json(['message' => 'Usuário registrado']);
     }
-    public function login(Request $request){
+    public function login(Request $request)
+    {
         $credenciais = [
             'email' => $request->email,
             'senha_hash' => $request->senha
         ];
 
         $usuario = Usuario::where('email', $request->email)->first();
-
-        if(!$usuario || !Hash::check($request->senha, $usuario->senha_hash)){
+        if (!$usuario || !Hash::check($request->senha, $usuario->senha_hash)) {
             return response()->json(['message' => 'Credenciais inválidas']);
         }
 
         Auth::guard('web')->login($usuario);
 
-        return response()->json(['message' => 'Login realizado']);
+        session(['test' => 'funcionando']);
+
+
+        return response()->json([
+            'message' => 'Login realizado',
+            'sessao_id' => session()->getId(),
+            'test' => session('test'),
+        ]);
     }
 
-    public function logout(){
+    public function logout()
+    {
         Auth::guard('web')->logout();
         return response()->json(['message' => 'Logout realizado']);
     }

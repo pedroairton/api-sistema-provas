@@ -16,6 +16,9 @@ Route::post('/admin/login', [AdminAuthController::class, 'login']);
 Route::post('/admin/logout', [AdminAuthController::class, 'logout']);
 
 Route::post('/questao/criar', [QuestoesController::class, 'criaQuestao']);
+Route::get('/questoes', [QuestoesController::class, 'getQuestoes']);
+Route::get('/questao/{questao}', [QuestoesController::class, 'getQuestao']);
+
 
 // Rotas protegidas para usuários
 // Ex: responder perguntas
