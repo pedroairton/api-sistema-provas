@@ -23,9 +23,10 @@ class AdminAuthController extends Controller
             'senha_hash' => Hash::make($request->senha)
         ]);
 
-        Auth::guard('admin')->login($admin);
+        // Auth::guard('admin')->login($admin);
+        $token = $admin->createToken('admin-token')->plainTextToken;
 
-        return response()->json(['message' => 'Administrador registrado']);
+        return response()->json(['message' => 'Administrador registrado', 'token' => $token]);
     }
     public function login(Request $request){
         $admin = Admin::where('email', $request->email)->first();
@@ -34,13 +35,15 @@ class AdminAuthController extends Controller
             return response()->json(['message' => 'Credenciais inválidas'], 401);
         }
 
-        Auth::guard('admin')->login($admin);
+        // Auth::guard('admin')->login($admin);
+        $token = $admin->createToken('admin-token')->plainTextToken;
 
-        return response()->json(['message' => 'Login de administrador realizado']);
+        return response()->json(['message' => 'Login de administrador realizado', 'token' => $token,]);
     }
 
-    public function logout(){
-        Auth::guard('admin')->logout();
+    public function logout(Request $request){
+        // Auth::guard('admin')->logout();
+        $request->user()->currentAcessToken()->delete();
         return response()->json(['message' => 'Logout de administrador realizado']);
     }
 }

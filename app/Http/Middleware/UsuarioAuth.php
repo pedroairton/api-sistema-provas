@@ -16,7 +16,10 @@ class UsuarioAuth
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(!Auth::guard('web')->check()){
+        // if(!Auth::guard('web')->check()){
+        //     return response()->json(['message' => 'Acesso não autorizado'], 401);
+        // }
+        if(!$request->user() || !$request->user() instanceof \App\Models\Usuario){
             return response()->json(['message' => 'Acesso não autorizado'], 401);
         }
 

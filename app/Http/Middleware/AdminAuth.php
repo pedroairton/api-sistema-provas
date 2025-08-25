@@ -16,10 +16,12 @@ class AdminAuth
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(!Auth::guard('admin')->check()){
+        // if(!Auth::guard('admin')->check()){
+        //     return response()->json(['message' => 'Acesso não autorizado'], 401);
+        // }
+        if(!$request->user() || !$request->user() instanceof \App\Models\Admin){
             return response()->json(['message' => 'Acesso não autorizado'], 401);
         }
-
         return $next($request);
     }
 }

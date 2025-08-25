@@ -5,6 +5,8 @@
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\UsuarioAuthController;
 use App\Http\Controllers\QuestoesController;
+use App\Http\Middleware\AdminAuth;
+use App\Http\Middleware\UsuarioAuth;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/usuario/register', [UsuarioAuthController::class, 'register']);
@@ -22,16 +24,29 @@ Route::get('/questao/{questao}', [QuestoesController::class, 'getQuestao']);
 
 // Rotas protegidas para usuários
 // Ex: responder perguntas
-Route::middleware(['auth.web'])->group(function () {
-    Route::get('/usuario/home', function () {
-        return dd('Rota protegida para usuário');
-    });
-});
+
+// Route::middleware(['auth.web'])->group(function () {
+//     Route::get('/usuario/home', function () {
+//         return dd('Rota protegida para usuário');
+//     });
+// });
 
 // Rotas protegidas para admins
 // Ex: cadastrar perguntas e alternativas
-Route::middleware(['auth.admin'])->prefix('admin')->group(function () {
+
+// Route::middleware(['auth.admin'])->prefix('admin')->group(function () {
+//     Route::get('/home', function () {
+//         return dd('Rota protegida para admin');
+//     });
+// });
+
+Route::middleware(['auth:sanctum', AdminAuth::class])->prefix('admin')->group(function () {
     Route::get('/home', function () {
         return dd('Rota protegida para admin');
+    });
+});
+Route::middleware(['auth:sanctum', UsuarioAuth::class])->prefix('usuario')->group(function () {
+    Route::get('/home', function () {
+        return dd('Rota protegida para usuario');
     });
 });

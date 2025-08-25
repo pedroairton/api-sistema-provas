@@ -24,9 +24,10 @@ class UsuarioAuthController extends Controller
             'senha_hash' => Hash::make($request->senha)
         ]);
 
-        Auth::guard('web')->login($usuario);
+        // Auth::guard('web')->login($usuario);
+        $token = $usuario->createToken('usuario-token')->plainTextToken;
 
-        return response()->json(['message' => 'Usuário registrado']);
+        return response()->json(['message' => 'Usuário registrado', 'token' => $token]);
     }
     public function login(Request $request)
     {
@@ -40,21 +41,21 @@ class UsuarioAuthController extends Controller
             return response()->json(['message' => 'Credenciais inválidas']);
         }
 
-        Auth::guard('web')->login($usuario);
-
-        session(['test' => 'funcionando']);
-
+        // Auth::guard('web')->login($usuario);
+        $token = $usuario->createToken('usuario-token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login realizado',
-            'sessao_id' => session()->getId(),
-            'test' => session('test'),
+            'token' => $token,
         ]);
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        Auth::guard('web')->logout();
+        // Auth::guard('web')->logout();
+
+        $request->user()->currentAccessToken()->delete();
+
         return response()->json(['message' => 'Logout realizado']);
     }
 }
