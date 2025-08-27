@@ -24,7 +24,8 @@ class AdminAuthController extends Controller
         ]);
 
         // Auth::guard('admin')->login($admin);
-        $token = $admin->createToken('admin-token')->plainTextToken;
+        $expiresAt = now()->addHours(6);
+        $token = $admin->createToken('admin-token', ['*'], $expiresAt)->plainTextToken;
 
         return response()->json(['message' => 'Administrador registrado', 'token' => $token]);
     }
@@ -36,7 +37,8 @@ class AdminAuthController extends Controller
         }
 
         // Auth::guard('admin')->login($admin);
-        $token = $admin->createToken('admin-token')->plainTextToken;
+        $expiresAt = now()->addHours(6);
+        $token = $admin->createToken('admin-token', ['*'], $expiresAt)->plainTextToken;
 
         return response()->json(['message' => 'Login de administrador realizado', 'token' => $token,]);
     }

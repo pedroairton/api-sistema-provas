@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Alternativa;
 use App\Models\Questao;
+use App\Models\UsuarioResposta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class QuestoesController extends Controller
 {
+    // admin
     public function criaQuestao(Request $request)
     {
         // return response()->json(['message' => $request->questoes]);
@@ -115,5 +117,24 @@ class QuestoesController extends Controller
     {
         $alternativas = $questao->alternativas;
         return response()->json($questao, 200);
+    }
+    public function respondeQuestao(Request $request){
+        $validator = Validator::make([
+            'usuario_id' => 'required',
+            'questao_id' => 'required',
+            'alternativa_selecionada_id' => 'required',
+        ], [
+            'usuario_id.required' => 'Usuário não identificado',
+            'questao_id.required' => 'Questão não identificada',
+            'alternativa_selecionada_id.required' => 'Nenhuma alternativa selecionada'
+        ]);
+
+        UsuarioResposta::create([
+            'usuario_id' => $request->usuario_id,
+            'questao_id' => $request->questao_id,
+            'alternativa_selecionada_id' => $request->alternativa_selecionada_id,
+        ]);
+
+        return response()->json(['message' => 'Resposta registrada', 200]);
     }
 }

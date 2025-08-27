@@ -25,28 +25,21 @@ Route::get('/questao/{questao}', [QuestoesController::class, 'getQuestao']);
 // Rotas protegidas para usuários
 // Ex: responder perguntas
 
-// Route::middleware(['auth.web'])->group(function () {
-//     Route::get('/usuario/home', function () {
-//         return dd('Rota protegida para usuário');
-//     });
-// });
 
 // Rotas protegidas para admins
 // Ex: cadastrar perguntas e alternativas
 
-// Route::middleware(['auth.admin'])->prefix('admin')->group(function () {
-//     Route::get('/home', function () {
-//         return dd('Rota protegida para admin');
-//     });
-// });
 
 Route::middleware(['auth:sanctum', AdminAuth::class])->prefix('admin')->group(function () {
     Route::get('/home', function () {
-        return dd('Rota protegida para admin');
+        // return dd('Rota protegida para admin');
+        return response()->json(['message' => 'Rota protegida para admin'], 200);
     });
 });
 Route::middleware(['auth:sanctum', UsuarioAuth::class])->prefix('usuario')->group(function () {
     Route::get('/home', function () {
-        return dd('Rota protegida para usuario');
+        // return dd('Rota protegida para usuario');
+        return response()->json(['message' => 'Rota protegida para usuário'], 200);
     });
+    Route::post('/responder', [QuestoesController::class, 'respondeQuestao']);
 });
