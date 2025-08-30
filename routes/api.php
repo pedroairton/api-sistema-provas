@@ -41,5 +41,8 @@ Route::middleware(['auth:sanctum', UsuarioAuth::class])->prefix('usuario')->grou
         // return dd('Rota protegida para usuario');
         return response()->json(['message' => 'Rota protegida para usuário'], 200);
     });
-    Route::post('/responder', [QuestoesController::class, 'respondeQuestao']);
+    Route::get('/questoes',[QuestoesController::class, 'getQuestoes']);
+    Route::get('/questoes/questao/{questao}', [QuestoesController::class, 'getQuestao']);
+    Route::post('/questoes/responder', [QuestoesController::class, 'respondeQuestao']);
+    Route::get('/questoes/random', [QuestoesController::class, 'getRandomQuestao']);
 });

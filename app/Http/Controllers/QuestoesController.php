@@ -118,23 +118,58 @@ class QuestoesController extends Controller
         $alternativas = $questao->alternativas;
         return response()->json($questao, 200);
     }
-    public function respondeQuestao(Request $request){
-        $validator = Validator::make([
-            'usuario_id' => 'required',
-            'questao_id' => 'required',
-            'alternativa_selecionada_id' => 'required',
+    public function getRandomQuestao()
+    {
+        try {
+            // $randomQuestao = Questao::inRandomOrder()->take(1)->get()->first();
+            $randomQuestao = Questao::inRandomOrder()->first();
+
+            if (!$randomQuestao) {
+                return response()->json([
+                    'message' => 'Nenhuma questão encontrada'
+                ], 404);
+            }
+
+            return response()->json(['questao' => $randomQuestao], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao buscar questões'
+            ], 500);
+        }
+    }
+    public function respondeQuestao(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'usuario_id' => 'required|exists:usuarios,id',
+            'questao_id' => 'required|exists:questoes,id',
+            'alternativa_selecionada_id' => 'required|exists:alternativas,id',
         ], [
             'usuario_id.required' => 'Usuário não identificado',
             'questao_id.required' => 'Questão não identificada',
-            'alternativa_selecionada_id.required' => 'Nenhuma alternativa selecionada'
+            'alternativa_selecionada_id.required' => 'Nenhuma alternativa selecionada',
         ]);
 
-        UsuarioResposta::create([
-            'usuario_id' => $request->usuario_id,
-            'questao_id' => $request->questao_id,
-            'alternativa_selecionada_id' => $request->alternativa_selecionada_id,
-        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+        $alt = $request->alternativa_selecionada_id;
 
-        return response()->json(['message' => 'Resposta registrada', 200]);
+        $isCorreta = Alternativa::where('id', $alt)->where('correta', true)->exists();
+        // resposta incorreta
+        try {
+            UsuarioResposta::create([
+                'usuario_id' => $request->usuario_id,
+                'questao_id' => $request->questao_id,
+                'alternativa_selecionada_id' => $request->alternativa_selecionada_id,
+            ]);
+            return response()->json([
+                'message' => $isCorreta ? 'Resposta correta!' : 'Resposta incorreta!', 
+                'correta' => $isCorreta
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Erro ao responder.'], 500);
+        }
+
     }
 }

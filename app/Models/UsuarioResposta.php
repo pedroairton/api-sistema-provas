@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class UsuarioResposta extends Model
 {
+    protected $table = 'respostas_usuarios';
     protected $fillable = ['usuario_id', 'questao_id', 'alternativa_selecionada_id'];
 
     public $timestamps = false;

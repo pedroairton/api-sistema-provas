@@ -39,7 +39,7 @@ class UsuarioAuth
             $usuario = $accessToken->tokenable;
 
             if (!$usuario || !$usuario instanceof \App\Models\Usuario) {
-                return response()->json(['message' => 'Acesso não autorizado'], 401);
+                return response()->json(['message' => 'Acesso não autorizado', $usuario], 401);
             }
 
         } catch (\Exception $e) {
