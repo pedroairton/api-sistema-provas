@@ -16,7 +16,7 @@ class QuestoesController extends Controller
     {
         // return response()->json(['message' => $request->questoes]);
         $validator = Validator::make($request->all(), [
-            'questoes.titulo' => 'required|string|max:900',
+            'questoes.titulo' => 'required|string|max:1500',
             'questoes.dificuldade' => 'required|string|max:50',
             'questoes.categoria' => 'required|string|max:100',
             'alternativas' => 'required|array|min:2',
@@ -110,8 +110,29 @@ class QuestoesController extends Controller
     }
     public function getQuestoes()
     {
-        $questoes = Questao::all();
-        return response()->json($questoes, 200);
+       try{
+           $usuarioId = auth()->id();
+
+           $questoes = Questao::with('alternativas')
+           ->naoRespondidasPor($usuarioId)
+           ->inRandomOrder()
+           ->get();
+
+           if($questoes->isEmpty()){
+            return response()->json([
+                'message' => 'Você já respondeu todas as questões disponíveis!'
+            ], 404);
+           }
+
+           return response()->json($questoes,200);
+       } catch(\Exception $e){
+        return response()->json([
+            'message' => 'Erro ao buscar questões'
+        ], 500);
+       }
+        
+        // $questoes = Questao::all();
+        // return response()->json($questoes, 200);
     }
     public function getQuestao(Questao $questao)
     {
@@ -121,16 +142,21 @@ class QuestoesController extends Controller
     public function getRandomQuestao()
     {
         try {
-            // $randomQuestao = Questao::inRandomOrder()->take(1)->get()->first();
-            $randomQuestao = Questao::inRandomOrder()->first();
+            $randomQuestoes = Questao::with(['alternativas' => function($query){
+                $query->select('id', 'questao_id', 'texto', 'correta');
+            }])
+            ->select('id', 'titulo', 'dificuldade', 'categoria')
+            ->inRandomOrder()
+            ->take(5)
+            ->get();
 
-            if (!$randomQuestao) {
+            if ($randomQuestoes->isEmpty()) {
                 return response()->json([
                     'message' => 'Nenhuma questão encontrada'
                 ], 404);
             }
 
-            return response()->json(['questao' => $randomQuestao], 200);
+            return response()->json($randomQuestoes, 200);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao buscar questões'
@@ -139,12 +165,16 @@ class QuestoesController extends Controller
     }
     public function respondeQuestao(Request $request)
     {
+        $usuario = auth()->user();
+
+        if(!$usuario){
+            return response()->json(['message' => 'Usuário não autenticado'], 401);
+        }
+
         $validator = Validator::make($request->all(), [
-            'usuario_id' => 'required|exists:usuarios,id',
             'questao_id' => 'required|exists:questoes,id',
             'alternativa_selecionada_id' => 'required|exists:alternativas,id',
         ], [
-            'usuario_id.required' => 'Usuário não identificado',
             'questao_id.required' => 'Questão não identificada',
             'alternativa_selecionada_id.required' => 'Nenhuma alternativa selecionada',
         ]);
@@ -152,23 +182,53 @@ class QuestoesController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
+
+        // verifica se já respondeu antes
+        $respExistente = UsuarioResposta::where('usuario_id', $usuario->id)
+        ->where('questao_id', $request->questao_id)
+        ->first();
+
+        if($respExistente){
+            return response()->json([
+                'message' => 'Você já respondeu esta questão anteriormente',
+                'correta' => $respExistente->alternativaSelecionada->correta ?? false
+            ], 409);
+        }
+
         $alt = $request->alternativa_selecionada_id;
 
+        // verifica se alternativa pertence à questão
+        $alternativaValida = Alternativa::where('id', $alt)
+        ->where('questao_id', $request->questao_id)
+        ->exists();
+
+        if(!$alternativaValida){
+            return response()->json([
+                'message' => 'Alternativa não pertence à questão selecionada'
+            ], 422);
+        }
+
         $isCorreta = Alternativa::where('id', $alt)->where('correta', true)->exists();
-        // resposta incorreta
+        
         try {
             UsuarioResposta::create([
-                'usuario_id' => $request->usuario_id,
+                'usuario_id' => $usuario->id, //id do usuário autenticado
                 'questao_id' => $request->questao_id,
                 'alternativa_selecionada_id' => $request->alternativa_selecionada_id,
+                // 'answered_at' => now();
             ]);
+            // retornar feedback para o usuário
             return response()->json([
                 'message' => $isCorreta ? 'Resposta correta!' : 'Resposta incorreta!', 
                 'correta' => $isCorreta
             ], 200);
 
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Erro ao responder.'], 500);
+            return response()->json([
+                'message' => 'Erro ao responder.', 
+                // RETIRAR EM PRODUÇÃO
+                'error' => $e->getMessage()
+        ], 500);
         }
 
     }

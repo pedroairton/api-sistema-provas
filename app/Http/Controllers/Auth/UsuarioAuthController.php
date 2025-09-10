@@ -38,7 +38,7 @@ class UsuarioAuthController extends Controller
 
         $usuario = Usuario::where('email', $request->email)->first();
         if (!$usuario || !Hash::check($request->senha, $usuario->senha_hash)) {
-            return response()->json(['message' => 'Credenciais inválidas']);
+            return response()->json(['message' => 'Credenciais inválidas'], 401);
         }
 
         // Auth::guard('web')->login($usuario);
@@ -47,6 +47,11 @@ class UsuarioAuthController extends Controller
         return response()->json([
             'message' => 'Login realizado',
             'token' => $token,
+            'usuario' => [
+                'id' => $usuario->id,
+                'email' => $usuario->email,
+                'nome' => $usuario->nome
+            ]
         ]);
     }
 
